@@ -1,3 +1,6 @@
+import { anthropic } from '@ai-sdk/anthropic';
+import { google } from '@ai-sdk/google';
+import { openai } from '@ai-sdk/openai';
 import { gateway } from "@ai-sdk/gateway";
 import {
   customProvider,
@@ -25,12 +28,35 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        "chat-model": gateway.languageModel("xai/grok-2-vision-1212"),
-        "chat-model-reasoning": wrapLanguageModel({
-          model: gateway.languageModel("xai/grok-3-mini"),
-          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        // Google Gemini (default provider)
+        'gemini-2.0-flash-exp': google('gemini-2.0-flash-exp'),
+        'gemini-1.5-pro': google('gemini-1.5-pro-latest'),
+        'gemini-1.5-flash': google('gemini-1.5-flash-latest'),
+        
+        // OpenAI
+        'gpt-4o': openai('gpt-4o'),
+        'gpt-4o-mini': openai('gpt-4o-mini'),
+        'gpt-4-turbo': openai('gpt-4-turbo'),
+        'o1': openai('o1'),
+        'o1-mini': openai('o1-mini'),
+        
+        // Anthropic
+        'claude-3-5-sonnet': anthropic('claude-3-5-sonnet-20241022'),
+        'claude-3-5-haiku': anthropic('claude-3-5-haiku-20241022'),
+        'claude-3-opus': anthropic('claude-3-opus-20240229'),
+        
+        // OpenRouter (via AI SDK Gateway)
+        'mistral-large': gateway.languageModel('openrouter/mistralai/mistral-large-2411'),
+        'llama-3.3-70b': gateway.languageModel('openrouter/meta-llama/llama-3.3-70b-instruct'),
+        'deepseek-chat': gateway.languageModel('openrouter/deepseek/deepseek-chat'),
+        
+        // Special models for internal use
+        'chat-model': google('gemini-2.0-flash-exp'), // Default for chat
+        'chat-model-reasoning': wrapLanguageModel({
+          model: openai('o1'),
+          middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
-        "title-model": gateway.languageModel("xai/grok-2-1212"),
-        "artifact-model": gateway.languageModel("xai/grok-2-1212"),
+        'title-model': google('gemini-1.5-flash-latest'), // Fast for titles
+        'artifact-model': google('gemini-1.5-pro-latest'), // Good for artifacts
       },
     });

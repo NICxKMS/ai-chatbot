@@ -181,8 +181,10 @@ export async function POST(request: Request) {
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
           experimental_activeTools:
-            selectedChatModel === "chat-model-reasoning"
-              ? []
+            selectedChatModel === "chat-model-reasoning" ||
+            selectedChatModel === "o1" ||
+            selectedChatModel === "o1-mini"
+              ? [] // Reasoning models don't support tools
               : [
                   "getWeather",
                   "createDocument",

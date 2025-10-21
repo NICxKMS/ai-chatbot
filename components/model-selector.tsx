@@ -8,10 +8,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
-import { chatModels } from "@/lib/ai/models";
+import { chatModels, getModelsByProvider } from "@/lib/ai/models";
 import { cn } from "@/lib/utils";
 import { CheckCircleFillIcon, ChevronDownIcon } from "./icons";
 
@@ -42,29 +44,19 @@ export function ModelSelector({
     [optimisticModelId, availableChatModels]
   );
 
-  return (
-    <DropdownMenu onOpenChange={setOpen} open={open}>
-      <DropdownMenuTrigger
-        asChild
-        className={cn(
-          "w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
-          className
-        )}
-      >
-        <Button
-          className="md:h-[34px] md:px-2"
-          data-testid="model-selector"
-          variant="outline"
-        >
-          {selectedChatModel?.name}
-          <ChevronDownIcon />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="start"
-        className="min-w-[280px] max-w-[90vw] sm:min-w-[300px]"
-      >
-        {availableChatModels.map((chatModel) => {
+  // Group models by provider
+  const googleModels = availableChatModels.filter(m => m.provider === 'google');
+  const openaiModels = availableChatModels.filter(m => m.provider === 'openai');
+  const anthropicModels = availableChatModels.filter(m => m.provider === 'anthropic');
+  const openrouterModels = availableChatModels.filter(m => m.provider === 'openrouter');
+
+  const renderModelGroup = (models: typeof availableChatModels, label: string) => {
+    if (models.length === 0) return null;
+    
+    return (
+      <>
+        <DropdownMenuLabel>{label}</DropdownMenuLabel>
+        {models.map((chatModel) => {
           const { id } = chatModel;
 
           return (
@@ -100,6 +92,42 @@ export function ModelSelector({
             </DropdownMenuItem>
           );
         })}
+      </>
+    );
+  };
+
+  return (
+    <DropdownMenu onOpenChange={setOpen} open={open}>
+      <DropdownMenuTrigger
+        asChild
+        className={cn(
+          "w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
+          className
+        )}
+      >
+        <Button
+          className="md:h-[34px] md:px-2"
+          data-testid="model-selector"
+          variant="outline"
+        >
+          {selectedChatModel?.name}
+          <ChevronDownIcon />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="min-w-[280px] max-w-[90vw] sm:min-w-[300px]"
+      >
+        {renderModelGroup(googleModels, "Google Gemini (Default)")}
+        {googleModels.length > 0 && (openaiModels.length > 0 || anthropicModels.length > 0 || openrouterModels.length > 0) && <DropdownMenuSeparator />}
+        
+        {renderModelGroup(openaiModels, "OpenAI")}
+        {openaiModels.length > 0 && (anthropicModels.length > 0 || openrouterModels.length > 0) && <DropdownMenuSeparator />}
+        
+        {renderModelGroup(anthropicModels, "Anthropic")}
+        {anthropicModels.length > 0 && openrouterModels.length > 0 && <DropdownMenuSeparator />}
+        
+        {renderModelGroup(openrouterModels, "OpenRouter")}
       </DropdownMenuContent>
     </DropdownMenu>
   );
